@@ -120,3 +120,6 @@ Keychain: split ring or cord through the Ø2.5 tunnel in the top-right corner.
 - Anything with a microSD card in: USB drive mode, the move from flash to card, 1600×1200 photos.
 - How much the camera standby lowers the deep-sleep current (measure it with a multimeter in series with the battery).
 - The case hasn't been printed yet; snap fit, button travel and keychain strength need a test print.
+
+## License
+MIT, see [LICENSE](LICENSE). Covers the firmware and the case design.
