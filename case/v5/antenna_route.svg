@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1010" height="459" viewBox="0 0 1010 459">
+<style>
+ svg{background:#fff} text{font:13px sans-serif;fill:#222}
+ .face{fill:#eef2f6;stroke:#1f4e79;stroke-width:1.2} .ring{fill:none;stroke:#7a8da0;stroke-width:1;stroke-dasharray:6 3}
+ .ghost{fill:none;stroke:#9aa;stroke-width:1;stroke-dasharray:4 3} .rib{fill:#c9d6e3;stroke:#1f4e79;stroke-width:1}
+ .ant{fill:#ffd9a8;stroke:#c26a00;stroke-width:1.5} .ufl{fill:#f6b3b3;stroke:#a30000;stroke-width:1.2}
+ .corridor{fill:#d8f0d8;stroke:#2e7d32;stroke-width:1;stroke-dasharray:4 3} .wire{fill:#fff3b0;stroke:#b59b00;stroke-width:1}
+ .cable{fill:none;stroke:#2e7d32;stroke-width:3;stroke-linejoin:round} .dot{fill:#2e7d32}
+</style>
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="20" y="26" style="font-weight:bold;font-size:17px">kukucs case v5: inside face of the lid with the antenna strip and its cable</text>
+<text x="20" y="46">seen from the front, like the front view: the board is on the right. Green = cable, orange = strip, yellow = battery wires</text>
+<rect class="face" x="70.0" y="100.0" width="740.3" height="269.5"/><rect class="ring" x="86.5" y="116.5" width="707.3" height="236.5"/><rect class="rib" x="598.0" y="182.5" width="22.0" height="82.5"/><rect class="rib" x="738.8" y="182.5" width="22.0" height="82.5"/><rect class="rib" x="620.0" y="101.1" width="82.5" height="30.1"/><text x="661.2" y="120.2" text-anchor="middle">tab</text><rect class="wire" x="87.6" y="273.8" width="592.9" height="19.8"/><text x="312.0" y="287.7" text-anchor="middle">battery wires</text><rect class="ant" x="92.0" y="122.0" width="445.5" height="225.5"/><text x="314.8" y="271.8" text-anchor="middle">antenna strip 40 × 20</text><rect class="ghost" x="97.5" y="201.2" width="440.0" height="165.0"/><text x="317.5" y="329.5" text-anchor="middle">battery behind the strip</text><rect class="ghost" x="581.5" y="132.3" width="195.8" height="233.9"/><text x="679.4" y="324.0" text-anchor="middle">board (behind)</text><rect class="ghost" x="284.5" y="100.0" width="143.0" height="63.8"/><text x="356.0" y="115.0" text-anchor="middle">button drawer</text><rect class="ufl" x="714.4" y="138.2" width="34.1" height="33.0"/><text x="731.4" y="122.4" text-anchor="middle">u.FL</text><rect class="corridor" x="537.5" y="144.0" width="250.8" height="33.0"/><polyline class="cable" points="731.4,154.7 782.8,154.7 782.8,160.5 537.5,160.5 532.0,138.5"/><circle class="dot" cx="782.8" cy="154.7" r="4"/><circle class="dot" cx="532.0" cy="138.5" r="4"/><text x="792.8" y="158.7" text-anchor="start">turns back</text><text x="792.8" y="174.7" text-anchor="start">past the board edge</text><text x="526.0" y="128.5" text-anchor="end">feed corner</text>
+<text x="70" y="400">cable: u.FL → right edge 5 mm, back to the lid face ≈5 mm, across the back 23 mm, up to the strip 2 mm</text>
+<text x="70" y="422">≈ 34 mm to the strip, + ≈ 23 mm along the strip (photo) = ≈ 57 mm of the 80 mm cable: ≈ 23 mm of slack for an S-curve</text>
+</svg>

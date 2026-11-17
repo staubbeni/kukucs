@@ -3,7 +3,7 @@
 A one-button keychain camera built on the Seeed XIAO ESP32-S3 Sense ("kukucs" is Hungarian for peekaboo).
 It sleeps all the time, wakes for one click, and serves its photos from its own Wi-Fi hotspot.
 
-![case v4 with the board, battery and button inside](case/v4/preview_fit.png)
+![case v5 with the board, battery and button inside](case/v5/preview_fit.png)
 
 ## Features
 - Deep sleep between shots; short press = photo (~1 s shutter lag), with a small thumbnail for the gallery.
@@ -24,6 +24,11 @@ It sleeps all the time, wakes for one click, and serves its photos from its own 
 
 ## Use
 - **Short press**: takes a photo, back to deep sleep.
+- Picture orientation depends on how the board sits, and `src/main.cpp` has two settings for it (`EXIF_ORIENTATION`: a
+  tag that asks viewers to turn the picture, pixels untouched; `SENSOR_ROTATE_180`: a free half turn in the sensor).
+  Measured: held like it sits in case v5 (USB-C pointing down, lens away from you), pictures come out upright and
+  landscape with no turn at all (`EXIF_ORIENTATION 1`, `SENSOR_ROTATE_180 false`, the default). Host test for
+  the tag code: `test/exif_selftest.cpp`.
 - **Long press (2 s)**: starts hotspot `kukucs` / password `kukucs123` (**change it** in `src/main.cpp` before you
   carry the camera around). The gallery pops up on the phone, or open http://192.168.4.1.
   If downloads don't start in the popup, open the address in the normal browser.
@@ -70,41 +75,55 @@ Zip writer self-test (host): see the top of `test/zip_selftest.cpp`.
 SSID, password, resolution, timings are `#define`s at the top of `src/main.cpp`; the gallery page is `src/page.h`.
 
 ## Case
-Current: `case/v4/` (CadQuery): v3 + room for wires at both battery ends. Vent slots exist but are off (`vents_on`).
-Older: `v3/` (battery only fits with wires at one end), `v2/` (board ledge hits the battery, button glued),
-`v1/` (OpenSCAD draft, lid collides). Print v4.
+Current: `case/v5/` (CadQuery), 70.5 × 27.7 × 19.7 mm. The board is turned so the sensor's wide side runs left-right and
+the pictures come out **landscape**. Seen from the front: the board is on the right with the lens in the lower right, the
+battery lies along the bottom on the left with the shutter button on top of it, and the **USB-C port and the microSD slot
+are in the bottom wall**. Older versions are kept for reference: `v4/` (portrait photos, USB-C in the side wall), `v3/`,
+`v2/`, `v1/`. Print v5.
 
-v4 files: `body.stl`, `lid.stl`, `cap.stl` (print orientation), `case_assembled.step`, `drawing.png` (dimensions).
-Outside 48.2 × 38.1 × 19.7 mm. Positions come from Seeed's official 3D model. `check_fit.py` tests the board, battery,
-button PCB, body, lid and cap against each other, plus the paths for putting the board and button in.
+v5 files: `body.stl`, `lid.stl`, `cap.stl` (print orientation), `case_assembled.step`, `drawing.png` (dimensions),
+`antenna_route.png` (where the antenna strip and its cable go).
+Positions come from Seeed's official 3D model. `check_fit.py` tests the board, battery, button PCB, body, lid and cap
+against each other, plus the paths for putting the board and the button board in, and the wire routes.
 
-Change a number at the top of `case/v4/model.py`, then (needs `pip install cadquery`):
+Change a number at the top of `case/v5/model.py`, then (needs `pip install cadquery`):
 `python model.py` and `python check_fit.py "Seeed Studio XIAO-ESP32-S3-Sense.step"`.
 
 Print: PLA, 0.2 mm layers, 3 walls, 15 % infill, no supports. Body front-face down, lid plate down, cap flange down.
 
 Nothing is glued, so every part can move to a new case version:
-1. Cap into the top hole from inside (its flange keeps it in).
-2. Button PCB, switch up, slides into its rails under the top wall from the back.
-3. microSD card out. Board in from the back, shifted ~1.5 mm right, lens against the front wall;
-   slide it left until the USB-C sits in its hole. Then push the card in through its slot from outside.
-4. Battery into the cradle, wires to the XIAO's back pads. Antenna FPC stuck inside the lid.
-5. Snap the lid on: its key locks the board's right end, its tab locks the button PCB, its ribs press the board
-   and battery forward. Fingernail notch at the bottom back edge to open it.
+1. Cap (rounded rectangle, so it can't turn) into the top hole from inside; its flange keeps it in.
+2. Button PCB, switch up, slides into its rails under the top wall from the back (above the battery); small crush ribs
+   on the rails hold it by friction (there is no lid tab: that part of the lid is for the antenna).
+3. Battery lies in the cradle on the bottom left, a wire at each end.
+4. Board, **microSD card out** and the antenna plugged onto the u.FL first: in from the back **raised about 1.8 mm**,
+   slide it forward until the lens barrel meets the front wall, then lower it so the USB-C seats in its slot in the
+   floor. Then push the card in through its slot from outside.
+5. Stick the antenna strip (flat FPC, 40 × 20 mm) on the inside of the lid, left half, with the strip's cable end at its
+   top-right corner; lay the cable as in `antenna_route.png` (see below).
+6. Snap the lid on: its ribs press the board forward, and its tab above the board stops it lifting out of the USB-C slot.
+   Fingernail notch at the bottom back edge to open it.
 
-Wiring routes (checked in `check_fit.py`), all through the 2.5 mm gap between the XIAO's back and the lid:
-- Battery → BAT pads on the XIAO's back (BAT− is the pad nearest USB-C). The battery has a wire at each end: the right-end
-  wire runs along the top-back of the battery to the left end, then both go up behind the board ledge.
+Wiring routes (checked in `check_fit.py`): the 2.5 mm gap between the XIAO's back and the lid, and a 3 mm gap right of the board.
+- Battery → BAT pads on the XIAO's back (BAT− is the pad nearest USB-C). A wire at each end: both run along the back of the
+  battery at mid height, then to the board.
 - Shutter button → D1 and GND: solder the wires to the switch's two metal end tabs (front side; the salvaged
   board has no pads on the back) and cut the two traces leading away from the switch. The wires leave over the top
-  of the button PCB towards the back (above the lowered lid tab), run behind the board **above** the lid key,
-  and are soldered on the back face of the 2nd pin from the USB-C end (one on each long edge). Lid ribs and lip are
-  cut away there so they don't press the joints.
-- Antenna: plug it onto the u.FL before the board goes in; the cable leaves past the board's right end **below**
-  the lid key, then the antenna sticks to the inside of the lid.
+  of the button PCB, run across the back of the board under the tab above it, and drop along the board's two side edges
+  to D1 and GND (the 2nd pin from the USB-C end on each edge, soldered on the back face).
+- Antenna (Seeed's flat FPC antenna: strip 40 × 20 mm, coax 1.13 mm × about 80 mm): plug it onto the u.FL before the board
+  goes in, turning the plug so the cable leaves towards the board's right edge. The cable goes out through the gap between
+  the two boards, turns back in the 3 mm space right of the board, then runs left across the back of the board in the
+  corridor between the lid ribs and the button wires (z 17.5–20.5), about 34 mm in all, to the strip's top-right corner.
+  The strip sits on the lid's left half, right behind the battery. About 23 mm of the cable is slack: take it up with an
+  S-curve in the corridor.
 
-BOOT: paperclip through the small hole above the lens. RESET (hole below the lens) only works with the SD card out.
-Keychain: split ring or cord through the Ø2.5 tunnel in the top-right corner.
+BOOT: paperclip through the small hole left of the lens. RESET (hole right of the lens) only works with the SD card out.
+Keychain: split ring or cord through the Ø2.5 tunnel in the top-left corner.
+The microSD card sticks out 1.2 mm below the case; add small feet if it should stand on a table.
+
+**Photo orientation:** held like it sits in this case (USB-C down, lens away from you) the pictures come out upright and
+landscape with no setting at all (`EXIF_ORIENTATION 1`, `SENSOR_ROTATE_180 false`, the firmware's default).
 
 ## Project layout
 | Path | What |
@@ -113,13 +132,16 @@ Keychain: split ring or cord through the Ø2.5 tunnel in the top-right corner.
 | `src/page.h` | the gallery page (HTML/CSS/JS in one string) |
 | `src/zipstream.h` | streaming zip writer used for downloads |
 | `test/zip_selftest.cpp` | host test for the zip writer |
-| `case/v4/` | current case: `model.py` (CadQuery), STLs, STEP, dimensioned drawing, `check_fit.py` |
-| `case/v1`–`v3` | earlier case versions, kept for reference |
+| `case/v5/` | current case: `model.py` (CadQuery), STLs, STEP, dimensioned drawing, `check_fit.py` |
+| `case/v1`–`v4` | earlier case versions, kept for reference |
 
 ## Not tested yet
-- Anything with a microSD card in: USB drive mode, the move from flash to card, 1600×1200 photos.
+- The case: v5 hasn't been printed; snap fit, button travel, keychain strength, the plug clearance and the friction lock of
+  the button PCB need a test print. The antenna sits right behind the metal battery, so expect less Wi-Fi range than in the open.
 - How much the camera standby lowers the deep-sleep current (measure it with a multimeter in series with the battery).
-- The case hasn't been printed yet; snap fit, button travel and keychain strength need a test print.
+- USB drive mode reads the card fine, but after leaving it the laptop resets the camera's USB link for up to a minute
+  (it recovers by itself), and a plain eject needs root. A long press on the camera leaves drive mode.
+- Photo orientation in the v5 pose (USB-C down): calculated from the v4-pose test, not yet tried.
 
 ## License
 MIT, see [LICENSE](LICENSE). Covers the firmware and the case design.
