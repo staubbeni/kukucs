@@ -12,6 +12,7 @@
 #include "esp_camera.h"
 #include "driver/rtc_io.h"
 #include "esp_rom_crc.h"
+#include "exif.h"
 #include "page.h"
 #include "zipstream.h"
 
@@ -39,6 +40,12 @@ const uint32_t IDLE_MS = 5 * 60 * 1000;      // hotspot: no page loads for this 
 const uint32_t NOBODY_MS = 2 * 60 * 1000;    // hotspot: no phone connected for this long -> sleep (forgotten)
 const uint32_t USB_WAIT_MS = 900;   // how long a PC gets to set up the USB device after wake
 const char *THUMBS = "/.thumbs";
+// How the pictures must be turned depends on how the board sits. Measured with test photos: held like it sits in the
+// case v5 (USB-C pointing down, lens away from you) the picture is already upright and landscape: no turn needed.
+// If your pictures come out turned: EXIF_ORIENTATION 3 = half turn, 6 = quarter turn clockwise, 8 = counter-clockwise;
+// SENSOR_ROTATE_180 does a half turn in the sensor itself (free, no tag).
+const bool SENSOR_ROTATE_180 = false;
+const uint8_t EXIF_ORIENTATION = 1;
 RTC_DATA_ATTR int32_t tzMin = 0;    // phone's UTC offset; survives deep sleep, like the clock itself
 
 WebServer srv(80);
@@ -118,6 +125,11 @@ bool initCamera() {
   c.grab_mode = CAMERA_GRAB_LATEST;
   esp_err_t err = esp_camera_init(&c);  // also wakes the sensor from standby (it resets it)
   if (err != ESP_OK) Serial.printf("camera init failed 0x%x\n", err);
+  else if (SENSOR_ROTATE_180) {  // flip + mirror = a half turn; init resets the sensor, so apply it on every start
+    sensor_t *s = esp_camera_sensor_get();
+    s->set_vflip(s, 1);
+    s->set_hmirror(s, 1);
+  }
   return err == ESP_OK;
 }
 
@@ -144,9 +156,19 @@ String newName() {
   return b;
 }
 
+// saves a JPEG with the orientation tag added (see exif.h), so photos show upright without any pixel work
 bool saveFile(const String &path, const uint8_t *buf, size_t len) {
   File f = store.open(path, FILE_WRITE);
-  size_t w = f ? f.write(buf, len) : 0;
+  size_t at = EXIF_ORIENTATION == 1 ? 0 : exifInsertAt(buf, len);
+  size_t w = 0;
+  if (f && at) {
+    uint8_t exif[EXIF_SEG_LEN];
+    exifSegment(EXIF_ORIENTATION, exif);
+    w = f.write(buf, at) + f.write(exif, sizeof exif) + f.write(buf + at, len - at);
+    len += sizeof exif;
+  } else if (f) {
+    w = f.write(buf, len);
+  }
   if (f) f.close();
   if (w == len) return true;
   store.remove(path);  // don't leave a truncated JPEG behind (storage full)
@@ -162,7 +184,7 @@ String takePhoto() {
   if (!fb) { Serial.println("capture failed"); return ""; }
   String name = newName();
   bool ok = saveFile(name, fb->buf, fb->len);
-  if (ok) Serial.printf("saved %s (%u bytes)\n", name.c_str(), (unsigned)fb->len);
+  if (ok) Serial.printf("saved %s (%u bytes) on %s\n", name.c_str(), (unsigned)fb->len, onSD ? "SD card" : "internal flash");
   esp_camera_fb_return(fb);
   if (!ok) return "";
 
@@ -409,6 +431,12 @@ void setup() {
   rtc_gpio_deinit(BTN);  // pin is still RTC-muxed from sleep
   pinMode(BTN, INPUT_PULLUP);  // before sleepNow(), which reads the button
 
+  // log what the hotspot sees: a phone joining, getting an address, leaving (with the reason code)
+  WiFi.onEvent([](WiFiEvent_t e, WiFiEventInfo_t i) {
+    if (e == ARDUINO_EVENT_WIFI_AP_STACONNECTED) Serial.println("wifi: phone joined");
+    else if (e == ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED) Serial.printf("wifi: phone got IP %s\n", IPAddress(i.wifi_ap_staipassigned.ip.addr).toString().c_str());
+    else if (e == ARDUINO_EVENT_WIFI_AP_STADISCONNECTED) Serial.printf("wifi: phone left, reason %d\n", (int)i.wifi_ap_stadisconnected.reason);
+  });
   route("/", HTTP_GET, []() { srv.send(200, "text/html", PAGE); });
   route("/api/list", HTTP_GET, sendList);
   route("/f", HTTP_GET, []() { sendJpeg(""); });
